@@ -1,0 +1,574 @@
+<!DOCTYPE html>
+<html lang="id" data-theme="day">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Kalkulator Bayar IMEI HKT</title>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet"/>
+  <style>
+    [data-theme="day"] {
+      --bg:#f1f5f9; --surface:#e4eaf2; --card:#fff; --border:#cdd5e0;
+      --text:#182636; --muted:#64748b; --light:#94a3b8; --input-bg:#f1f5f9;
+      --sub-bg:#f7fafd; --topbar:#0c2340;
+      --sh:0 2px 16px rgba(12,35,64,.09); --sh2:0 8px 40px rgba(12,35,64,.14);
+    }
+    [data-theme="dark"] {
+      --bg:#0d1117; --surface:#161b22; --card:#1c2330; --border:#30363d;
+      --text:#e6edf3; --muted:#8b949e; --light:#6e7681; --input-bg:#0d1117;
+      --sub-bg:#161b22; --topbar:#080d14;
+      --sh:0 2px 16px rgba(0,0,0,.45); --sh2:0 8px 40px rgba(0,0,0,.55);
+    }
+    :root {
+      --accent:#1d6fd4; --green:#0d7a4e; --green2:#13a368;
+      --gold2:#f0b429; --pay-red:#ff0050;
+      --font:'Outfit',sans-serif; --mono:'JetBrains Mono',monospace;
+    }
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+    html{scroll-behavior:smooth}
+    body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:100vh;padding-bottom:80px;transition:background .25s,color .25s}
+
+    /* TOPBAR */
+    .topbar{background:var(--topbar);color:#fff;padding:0 20px;height:54px;display:flex;align-items:center;gap:12px;position:sticky;top:0;z-index:100;box-shadow:0 2px 12px rgba(0,0,0,.35);transition:background .25s}
+    .tb-icon{font-size:20px}
+    .tb-title{font-size:14px;font-weight:800;letter-spacing:-.2px;line-height:1.1}
+    .tb-sub{font-size:10px;opacity:.5;font-family:var(--mono)}
+    .tb-sep{flex:1}
+    .theme-toggle{display:flex;align-items:center;gap:7px;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.15);border-radius:99px;padding:5px 10px 5px 5px;cursor:pointer;font-size:11.5px;font-family:var(--mono);color:rgba(255,255,255,.75);transition:background .2s;user-select:none}
+    .theme-toggle:hover{background:rgba(255,255,255,.15)}
+    .tt-track{width:30px;height:17px;background:rgba(255,255,255,.15);border-radius:99px;position:relative;transition:background .2s}
+    [data-theme="dark"] .tt-track{background:var(--accent)}
+    .tt-knob{position:absolute;top:1.5px;left:1.5px;width:14px;height:14px;background:#fff;border-radius:50%;font-size:9px;display:flex;align-items:center;justify-content:center;transition:transform .2s}
+    [data-theme="dark"] .tt-knob{transform:translateX(13px)}
+
+    /* HERO */
+    .hero{background:linear-gradient(135deg,#0c2340 0%,#153460 55%,#0a1d38 100%);color:#fff;padding:36px 20px 50px;text-align:center;position:relative;overflow:hidden}
+    .hero::before{content:'';position:absolute;inset:0;background:radial-gradient(ellipse at 20% 80%,rgba(255,0,80,.12) 0%,transparent 55%),radial-gradient(ellipse at 80% 15%,rgba(240,180,41,.1) 0%,transparent 50%);pointer-events:none}
+    .hero-inner{position:relative;max-width:540px;margin:0 auto}
+    .hero h1{font-size:clamp(1.6rem,5vw,2.4rem);font-weight:800;letter-spacing:-1px;line-height:1.1;margin-bottom:9px}
+    .hero-sub{font-size:13px;opacity:.65;line-height:1.55;font-family:var(--mono)}
+    .hero-chips{display:flex;flex-wrap:wrap;justify-content:center;gap:6px;margin-top:14px}
+    .chip{background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.15);border-radius:99px;padding:3px 11px;font-size:12px;font-weight:500}
+
+    /* WRAP */
+    .wrap{max-width:800px;margin:24px auto 0;padding:0 16px}
+
+    /* CARD */
+    .card{background:var(--card);border-radius:16px;box-shadow:var(--sh2);margin-bottom:16px;overflow:hidden;border:1px solid var(--border);transition:background .25s}
+    .card-head{background:linear-gradient(90deg,#0c2340 0%,#153460 100%);color:#fff;padding:13px 20px;display:flex;align-items:center;gap:10px}
+    .card-head-icon{font-size:18px}
+    .card-head-label{font-size:13.5px;font-weight:700}
+    .card-head-sub{font-size:11px;opacity:.6}
+    .card-body{padding:22px 20px}
+
+    /* FORM */
+    .grid2{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+    .fgroup{display:flex;flex-direction:column;gap:5px}
+    .flabel{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.6px;color:var(--text);opacity:.7}
+    .flabel .req{color:var(--pay-red);margin-left:2px}
+
+    .iw{position:relative}
+    .iw .pre,.iw .suf{position:absolute;top:50%;transform:translateY(-50%);font-family:var(--mono);font-size:12px;font-weight:600;color:var(--muted);pointer-events:none}
+    .iw .pre{left:11px}
+    .iw .suf{right:11px}
+    input[type=number],select{width:100%;background:var(--input-bg);border:2px solid var(--border);border-radius:10px;color:var(--text);font-family:var(--font);font-size:15px;font-weight:600;padding:11px 13px;outline:none;-moz-appearance:textfield;transition:border-color .2s,box-shadow .2s,background .25s,color .25s}
+    input[type=number]::-webkit-outer-spin-button,
+    input[type=number]::-webkit-inner-spin-button{-webkit-appearance:none}
+    input.pre-in{padding-left:40px}
+    input.suf-in{padding-right:46px}
+    input:focus,select:focus{border-color:var(--accent);box-shadow:0 0 0 3px rgba(29,111,212,.15);background:var(--card)}
+    @keyframes flashFill{0%,60%{background:#fffbe6;border-color:#f0b429}100%{background:var(--card);border-color:var(--accent)}}
+    input.flash{animation:flashFill .7s ease forwards}
+    select{appearance:none;cursor:pointer;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%2364748b' stroke-width='2.5'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 11px center;padding-right:34px}
+
+    /* KURS HINT ROW */
+    .kurs-row{display:flex;align-items:center;flex-wrap:wrap;gap:8px;margin-top:5px}
+    .kurs-src{font-size:11px;color:var(--muted);font-family:var(--mono)}
+    .kurs-src a{color:var(--accent);text-decoration:none;font-weight:600}
+    .kurs-src a:hover{text-decoration:underline}
+
+    /* KURS BADGE — tombol klik isi otomatis */
+    .kurs-badge{
+      display:inline-flex;align-items:center;gap:6px;
+      background:linear-gradient(135deg,#0c2340,#1d4a88);
+      color:#fff;border:none;border-radius:8px;
+      padding:5px 11px;font-family:var(--mono);font-size:11.5px;
+      cursor:pointer;transition:transform .15s,box-shadow .15s;
+      white-space:nowrap;
+    }
+    .kurs-badge:hover{transform:translateY(-1px);box-shadow:0 4px 14px rgba(12,35,64,.35)}
+    .kurs-badge:active{transform:none}
+    .kb-tag{font-size:9px;opacity:.65;font-weight:400;background:rgba(255,255,255,.12);padding:1px 5px;border-radius:4px}
+    .kb-val{color:var(--gold2);font-weight:700;font-size:13px}
+    .kb-src{font-size:9px;opacity:.55}
+    .kb-cta{font-size:10px;opacity:.7}
+
+    /* status fetch kurs */
+    .kurs-status{font-size:10.5px;font-family:var(--mono);display:flex;align-items:center;gap:5px}
+    .kurs-status.loading{color:var(--muted)}
+    .kurs-status.ok{color:var(--green2)}
+    .kurs-status.err{color:#f87171}
+    @keyframes spin{to{transform:rotate(360deg)}}
+    .spin{display:inline-block;width:9px;height:9px;border:2px solid currentColor;border-top-color:transparent;border-radius:50%;animation:spin .7s linear infinite}
+
+    /* DIVIDER */
+    .or-div{display:flex;align-items:center;gap:10px;margin:8px 0 14px}
+    .or-div::before,.or-div::after{content:'';flex:1;height:1px;background:var(--border)}
+    .or-div span{font-size:10.5px;font-family:var(--mono);color:var(--light);white-space:nowrap}
+
+    /* ALERT */
+    .alert{display:none;border-radius:10px;padding:11px 14px;font-size:12.5px;line-height:1.55;gap:9px;align-items:flex-start}
+    .alert.show{display:flex}
+    .alert-warn{background:#fffbea;border:1.5px solid #f5d47a;color:#7a5500}
+    [data-theme="dark"] .alert-warn{background:#2a2000;border-color:#7a6000;color:#f5d47a}
+    .alert-icon{font-size:15px;flex-shrink:0}
+
+    /* BUTTONS */
+    .btn-primary{width:100%;background:linear-gradient(135deg,#0c2340 0%,#1d4a88 100%);color:#fff;border:none;border-radius:12px;font-family:var(--font);font-size:15px;font-weight:700;padding:14px;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:7px;transition:transform .15s,box-shadow .15s}
+    .btn-primary:hover{transform:translateY(-1px);box-shadow:0 6px 22px rgba(12,35,64,.3)}
+    .btn-primary:active{transform:none}
+    .btn-sec{width:100%;background:transparent;border:2px solid var(--border);border-radius:12px;font-family:var(--font);font-size:13.5px;font-weight:600;color:var(--muted);padding:10px;cursor:pointer;margin-top:9px;transition:border-color .2s,color .2s}
+    .btn-sec:hover{border-color:var(--accent);color:var(--accent)}
+
+    /* RESULT */
+    .result{display:none}
+    .result.show{display:block;animation:fadeUp .4s ease}
+    .sbanner{border-radius:14px;padding:16px 18px;margin-bottom:14px;display:flex;align-items:center;gap:14px}
+    .sbanner.gratis{background:linear-gradient(135deg,#e6f9f1,#d1f5e4);border:2px solid var(--green2)}
+    .sbanner.bayar{background:var(--pay-red);border:2px solid #cc003f}
+    .sban-icon{font-size:36px}
+    .sban-h{font-size:17px;font-weight:800}
+    .sbanner.gratis .sban-h{color:var(--green)}
+    .sbanner.bayar  .sban-h{color:#fff}
+    .sban-p{font-size:12.5px;margin-top:3px;line-height:1.5}
+    .sbanner.gratis .sban-p{color:var(--muted)}
+    .sbanner.bayar  .sban-p{color:rgba(255,255,255,.82)}
+
+    .dtable{border-radius:14px;overflow:hidden;box-shadow:var(--sh);margin-bottom:14px;border:1px solid var(--border)}
+    .dhead{background:var(--surface);padding:10px 18px;border-bottom:1px solid var(--border);font-size:10.5px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--text);display:flex;align-items:center;gap:7px;transition:background .25s}
+    .drow{background:var(--card);display:flex;justify-content:space-between;align-items:center;padding:12px 18px;border-bottom:1px solid var(--border);gap:10px;transition:background .25s}
+    .drow:last-child{border-bottom:none}
+    .drow.sub{background:var(--sub-bg)}
+    .drow.tot{background:#0c2340;color:#fff}
+    .drow.tot2{background:#0d4a28;color:#fff}
+    [data-theme="dark"] .drow.tot{background:#0a1e40}
+    [data-theme="dark"] .drow.tot2{background:#0a3020}
+    .dlabel{font-size:13.5px;display:flex;flex-direction:column;gap:2px}
+    .dformula{font-family:var(--mono);font-size:10.5px;color:var(--muted)}
+    .drow.tot .dformula,.drow.tot2 .dformula{color:rgba(255,255,255,.4)}
+    .dval{font-family:var(--mono);font-size:14px;font-weight:600;color:var(--text);text-align:right;white-space:nowrap}
+    .drow.tot  .dval{font-size:17px;font-weight:700;color:var(--gold2)}
+    .drow.tot2 .dval{font-size:17px;font-weight:700;color:#6ee7a0}
+
+    .npwp-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px}
+    .ncard{background:var(--card);border-radius:12px;box-shadow:var(--sh);padding:14px;border:1px solid var(--border);transition:background .25s}
+    .ncard.yes{border-color:var(--green2)}
+    .ncard.no{border-color:var(--pay-red)}
+    .ncard-lbl{font-size:10.5px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;margin-bottom:7px;display:flex;align-items:center;gap:5px}
+    .ncard.yes .ncard-lbl{color:var(--green)}
+    .ncard.no  .ncard-lbl{color:var(--pay-red)}
+    .ncard-total{font-family:var(--mono);font-size:16px;font-weight:600;color:var(--text);margin-bottom:4px}
+    .ncard-detail{font-size:11.5px;color:var(--muted);line-height:1.5}
+
+    .notes{background:var(--card);border-radius:14px;box-shadow:var(--sh);padding:16px 18px;margin-bottom:14px;border:1px solid var(--border);transition:background .25s}
+    .notes h4{font-size:12.5px;font-weight:700;color:var(--text);margin-bottom:10px}
+    .notes ul{list-style:none;display:flex;flex-direction:column;gap:7px}
+    .notes li{font-size:12.5px;color:var(--muted);display:flex;gap:8px;line-height:1.55}
+    .notes li::before{content:'→';color:var(--accent);font-weight:700;flex-shrink:0}
+    .notes li strong{color:var(--text)}
+
+    .info-sec{margin-top:20px}
+    .info-sec-title{font-size:10.5px;font-weight:700;text-transform:uppercase;letter-spacing:.6px;color:var(--light);margin-bottom:10px}
+    .info-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+    .icard{background:var(--card);border-radius:12px;box-shadow:var(--sh);padding:16px;border:1px solid var(--border);transition:background .25s}
+    .icard-icon{font-size:22px;margin-bottom:7px}
+    .icard h4{font-size:12.5px;font-weight:700;color:var(--text);margin-bottom:4px}
+    .icard p{font-size:12px;color:var(--muted);line-height:1.6}
+    .icard p strong{color:var(--text)}
+
+    .footer{text-align:center;padding:28px 16px 12px;font-size:12px;color:var(--light);max-width:800px;margin:0 auto}
+    .footer a{color:var(--accent);font-weight:600;text-decoration:none}
+
+    @keyframes fadeUp{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:translateY(0)}}
+
+    @media(max-width:540px){
+      .grid2{grid-template-columns:1fr}
+      .npwp-grid{grid-template-columns:1fr}
+      .info-grid{grid-template-columns:1fr}
+      .card-body{padding:18px 14px}
+      .hero{padding:28px 16px 42px}
+      .kurs-row{flex-direction:column;align-items:flex-start}
+    }
+  </style>
+</head>
+<body>
+
+<header class="topbar">
+  <span class="tb-icon">📱</span>
+  <div>
+    <div class="tb-title">KALKULATOR BAYAR IMEI</div>
+  </div>
+  <div class="tb-sep"></div>
+  <div class="theme-toggle" onclick="toggleTheme()" title="Ganti tema">
+    <div class="tt-track"><div class="tt-knob" id="knobIcon">☀️</div></div>
+    <span id="themeLabel">Day</span>
+  </div>
+</header>
+
+
+
+<div class="wrap">
+  <div class="card">
+
+    <div class="card-body">
+<div class="tb-sub">Ini cuma kalkulator estimasi lho ya, jangan berharap lebih!<p>Registrasi dulu disini biar dapat pembebasan → <a href="https://ecd.beacukai.go.id" target="_blank">ecd.beacukai.go.id</a></p></div>
+<div class="or-div"><span>Hitung yuk!</span></div>
+      <div class="fgroup" style="margin-bottom:14px">
+        <label class="flabel">Jenis Penumpang <span class="req">*</span></label>
+        <select id="jenis">
+          <option value="500">✈️ Penumpang Internasional — Dibebaskan USD 500</option>
+          <option value="50">👨🏻‍✈️ Awak Sarana Pengangkut — Dibebaskan USD 50</option>
+        </select>
+      </div>
+
+      <div class="grid2">
+        <div class="fgroup">
+          <label class="flabel">Harga Barang (per unit) <span class="req">*</span></label>
+          <div class="iw">
+            <span class="pre">USD</span>
+            <input type="number" id="harga" class="pre-in" placeholder="0.00" min="0" step="0.01"/>
+          </div>
+        </div>
+        <div class="fgroup">
+          <label class="flabel">Jumlah Unit <span class="req">*</span></label>
+          <div class="iw">
+            <input type="number" id="unit" class="suf-in" placeholder="1" min="1" max="2" value="1"/>
+            <span class="suf">unit</span>
+          </div>
+        </div>
+
+        <!-- KURS — full width -->
+        <div class="fgroup" style="grid-column:span 2">
+          <label class="flabel">Kurs DJBC <span class="req">*</span></label>
+          <div class="iw">
+            <span class="pre">Rp</span>
+            <input type="number" id="kurs" class="pre-in" value="17000" min="1"/>
+          </div>
+          <!-- Baris info kurs -->
+          <div class="kurs-row">
+            <span class="kurs-src">
+              Kalo males liat kurs resmi, bisa diklik itu nominal kurs realtime lain tapi beda sama yang resmi →
+              <a href="https://www.beacukai.go.id/kurs" target="_blank" rel="noopener">Kurs Resmi Disini</a>
+            </span>
+            <!-- status loading / badge -->
+            <span class="kurs-status loading" id="kursStatus">
+              <span class="spin"></span> mengambil kurs USD...
+            </span>
+            <div id="kursBadgeSlot"></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="or-div"><span>opsi tambahan</span></div>
+
+      <div class="grid2">
+        <div class="fgroup">
+          <label class="flabel">Kepemilikan NPWP</label>
+          <select id="npwp">
+            <option value="10">✅ Punya NPWP — PPh 10%</option>
+            <option value="20">❌ Tidak Punya — PPh 20%</option>
+          </select>
+        </div>
+        <div class="fgroup">
+          <label class="flabel">Lokasi Registrasi IMEI</label>
+          <select id="lokasi" onchange="toggleWarn()">
+            <option value="bandara">🛬 Di Bandara (dapat pembebasan)</option>
+            <option value="luar">🏢 Di Luar Bandara (tanpa pembebasan)</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="alert alert-warn" id="warnLuar" style="margin-top:12px">
+        <span class="alert-icon">⚠️</span>
+        <div><strong>Registrasi di luar bandara:</strong> Tidak mendapat fasilitas pembebasan. Seluruh nilai HKT langsung kena bea masuk &amp; pajak penuh.</div>
+      </div>
+
+      <div style="margin-top:16px">
+        <button class="btn-primary" onclick="hitung()">🧮 &nbsp;Hitung Estimasi Pajak</button>
+        <button class="btn-sec"     onclick="doReset()">↺ &nbsp;Reset</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- RESULT -->
+  <div class="result" id="result">
+    <div class="sbanner" id="sbanner">
+      <div class="sban-icon" id="sbanIcon"></div>
+      <div><div class="sban-h" id="sbanH"></div><div class="sban-p" id="sbanP"></div></div>
+    </div>
+    <div class="dtable">
+      <div class="dhead">📊 &nbsp;Rincian Perhitungan</div>
+      <div id="dtBody"></div>
+    </div>
+    <div class="npwp-grid" id="npwpGrid" style="display:none">
+      <div class="ncard yes">
+        <div class="ncard-lbl">✅ Punya NPWP</div>
+        <div class="ncard-total" id="nYesTotal">–</div>
+        <div class="ncard-detail">PPh Pasal 22 = 10% × NI<br><span id="nYesPPh">–</span></div>
+      </div>
+      <div class="ncard no">
+        <div class="ncard-lbl">❌ Tanpa NPWP</div>
+        <div class="ncard-total" id="nNoTotal">–</div>
+        <div class="ncard-detail">PPh Pasal 22 = 20% × NI<br><span id="nNoPPh">–</span></div>
+      </div>
+    </div>
+    <div class="notes">
+      <h4>📋 Catatan</h4>
+      <ul id="notesList"></ul>
+    </div>
+  </div>
+
+  <!-- INFO -->
+  <div class="info-sec">
+    <div class="info-sec-title">Info Umum HKT</div>
+    <div class="info-grid">
+      <div class="icard"><div class="icard-icon">💰</div><h4>Batas Pembebasan</h4><p>Penumpang dibebaskan <strong>USD 500</strong>.<p> Awak pengangkut dibebaskan <strong>USD 50</strong>.<p>Kelebihan kena BM &amp; pajak.</p></div>
+      <div class="icard"><div class="icard-icon">📦</div><h4>Batas Unit</h4><p>Maksimal <strong>2 unit HKT</strong> per penumpang per kedatangan per tahun.</p></div>
+      <div class="icard"><div class="icard-icon">🛂</div><h4>Cara Registrasi</h4><p>Counter Bea Cukai di bandara, atau<p>online via <strong>ecd.beacukai.go.id</strong> mulai H-2.</p><p><strong>Pendaftaran IMEI di luar Bandara </strong>tidak mendapat pembebasan</p></div>
+      <div class="icard"><div class="icard-icon">⏱️</div><h4>Batas Waktu Lapor Petugas</h4><p>Paling lambat <strong>5 hari</strong> setelah daftar dapat barcode agar dapat pembebasan.</p><p><strong>Pendaftaran IMEI diluar Bandara</strong> paling lambat <strong>60 hari</strong> setelah tiba.</p></div>
+    </div>
+  </div>
+
+  <footer class="footer">
+    <p>Kalkulator buatan orang pribadi yagesya · Bukan produk resmi pemerintah<br>
+    Dibuat tahun 2026 oleh Samuel Lana</p>
+  </footer>
+</div>
+
+<script>
+/* ══════════════════════════════════════════
+   THEME
+══════════════════════════════════════════ */
+function toggleTheme(){
+  const html = document.documentElement;
+  const dark = html.getAttribute('data-theme') === 'dark';
+  html.setAttribute('data-theme', dark ? 'day' : 'dark');
+  document.getElementById('knobIcon').textContent  = dark ? '☀️' : '🌙';
+  document.getElementById('themeLabel').textContent = dark ? 'Day' : 'Dark';
+  localStorage.setItem('imei-theme', dark ? 'day' : 'dark');
+}
+(function(){
+  const s = localStorage.getItem('imei-theme');
+  if(s === 'dark'){
+    document.documentElement.setAttribute('data-theme','dark');
+    document.getElementById('knobIcon').textContent  = '🌙';
+    document.getElementById('themeLabel').textContent = 'Dark';
+  }
+})();
+
+/* ══════════════════════════════════════════
+   KURS — Fetch USD/IDR realtime
+   Sumber 1: fawazahmed0/currency-api (via jsDelivr CDN, no API key, no CORS)
+   Sumber 2: open.er-api.com (fallback, no API key, no CORS)
+   Sumber 3: hardcoded fallback terakhir
+══════════════════════════════════════════ */
+const FALLBACK_KURS = 17000; // Fallback kasar jika semua API gagal
+let kursLive  = null;  // null = belum dapat
+let kursSrc   = '';
+
+function setKursStatus(type, html){
+  const el = document.getElementById('kursStatus');
+  el.className = 'kurs-status ' + type;
+  el.innerHTML = html;
+}
+
+function renderBadge(nilai, sumber){
+  const fmt = n => 'Rp ' + parseInt(n).toLocaleString('id-ID');
+  document.getElementById('kursBadgeSlot').innerHTML = `
+    <button class="kurs-badge" onclick="pakaiKurs()" title="Klik untuk isi ke kotak kurs">
+      <span class="kb-tag">USD/IDR</span>
+      <span class="kb-val">${fmt(nilai)}</span>
+      <span class="kb-src">· ${sumber}</span>
+      <span class="kb-cta">↙ pakai</span>
+    </button>`;
+}
+
+async function fetchKurs(){
+  // ── Sumber 1: fawazahmed0 via jsDelivr (paling andal, CDN global) ──
+  try {
+    const url  = 'https://cdn.jsdelivr.net/npm/@fawazahmed0/currency-api@latest/v1/currencies/usd.json';
+    const res  = await fetch(url, { signal: AbortSignal.timeout(5000) });
+    const data = await res.json();
+    const idr  = data?.usd?.idr;
+    if(idr && idr > 5000){
+      kursLive = Math.round(idr);
+      kursSrc  = 'fawazahmed0';
+      document.getElementById('kurs').value = kursLive;
+      setKursStatus('ok', '✓ kurs USD realtime');
+      renderBadge(kursLive, 'market rate harian');
+      return;
+    }
+  } catch(e){}
+
+  // ── Sumber 2: open.er-api.com (fallback, gratis tanpa key) ──
+  try {
+    const url  = 'https://open.er-api.com/v6/latest/USD';
+    const res  = await fetch(url, { signal: AbortSignal.timeout(5000) });
+    const data = await res.json();
+    const idr  = data?.rates?.IDR;
+    if(idr && idr > 5000){
+      kursLive = Math.round(idr);
+      kursSrc  = 'open.er-api.com';
+      document.getElementById('kurs').value = kursLive;
+      setKursStatus('ok', '✓ kurs USD realtime');
+      renderBadge(kursLive, 'market rate harian');
+      return;
+    }
+  } catch(e){}
+
+  // ── Sumber 3: hardcoded fallback ──
+  kursLive = FALLBACK_KURS;
+  document.getElementById('kurs').value = FALLBACK_KURS;
+  setKursStatus('err', '⚠ offline · pakai kurs terakhir');
+  renderBadge(FALLBACK_KURS, 'fallback · cek manual');
+}
+
+function pakaiKurs(){
+  if(!kursLive) return;
+  const inp = document.getElementById('kurs');
+  inp.value = kursLive;
+  inp.classList.remove('flash');
+  void inp.offsetWidth;
+  inp.classList.add('flash');
+  inp.addEventListener('animationend', () => inp.classList.remove('flash'), {once:true});
+}
+
+// Jalankan saat load
+fetchKurs();
+
+/* ══════════════════════════════════════════
+   HELPERS
+══════════════════════════════════════════ */
+const $   = id => document.getElementById(id);
+const idr = n  => 'Rp ' + Math.round(n).toLocaleString('id-ID');
+const usd = n  => 'USD ' + (+n).toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2});
+
+function toggleWarn(){
+  $('warnLuar').classList.toggle('show', $('lokasi').value === 'luar');
+}
+
+function row(label, formula, val, cls=''){
+  return `<div class="drow ${cls}">
+    <div class="dlabel">${label}<span class="dformula">${formula}</span></div>
+    <div class="dval">${val}</div>
+  </div>`;
+}
+
+/* ══════════════════════════════════════════
+   HITUNG
+══════════════════════════════════════════ */
+function hitung(){
+  const bebasLimit = parseFloat($('jenis').value);
+  const harga      = parseFloat($('harga').value) || 0;
+  const unit       = Math.min(parseInt($('unit').value)||1, 2);
+  const kurs       = parseFloat($('kurs').value) || FALLBACK_KURS;
+  const npwpRate   = parseInt($('npwp').value);
+  const luar       = $('lokasi').value === 'luar';
+
+  if(harga <= 0){ alert('Harga barangnya dimasukin dulu dong, KOCAK!'); return; }
+
+  const totalHKT  = harga * unit;
+  const bebas     = luar ? 0 : bebasLimit;
+  const nilaiKena = Math.max(0, totalHKT - bebas);
+
+  const NP    = nilaiKena * kurs;
+  const BM    = nilaiKena > 0 ? Math.ceil(NP * 0.10 / 1000) * 1000 : 0;
+  const NI    = NP + BM;
+  const PPN   = nilaiKena > 0 ? (12/100) * (11/12) * NI : 0;
+  const PPh10 = nilaiKena > 0 ? 0.10 * NI : 0;
+  const PPh20 = nilaiKena > 0 ? 0.20 * NI : 0;
+  const PPh   = npwpRate === 10 ? PPh10 : PPh20;
+  const total   = BM + PPN + PPh;
+  const total10 = BM + PPN + PPh10;
+  const total20 = BM + PPN + PPh20;
+
+  // Banner
+  const sb = $('sbanner');
+  if(nilaiKena <= 0){
+    sb.className = 'sbanner gratis';
+    $('sbanIcon').textContent = '✅';
+    $('sbanH').textContent    = 'BEBAS BEA MASUK & PAJAK';
+    $('sbanP').textContent    = `Nilai HKT ${usd(totalHKT)} ≤ batas pembebasan ${usd(bebas)}. Tidak ada pungutan!`;
+  } else {
+    sb.className = 'sbanner bayar';
+    $('sbanIcon').textContent = '🧾';
+    $('sbanH').textContent    = 'DIKENAKAN BEA MASUK & PAJAK';
+    $('sbanP').textContent    = `Kelebihan ${usd(nilaiKena)} dari batas bebas ${usd(bebas)} dikenai BM + PPN + PPh.`;
+  }
+
+  // Tabel
+  let html = '';
+  html += row('Harga HKT',             `${usd(harga)} × ${unit} unit`,                         usd(totalHKT));
+  html += row('Fasilitas Pembebasan',  luar ? 'Tidak berlaku (luar bandara)' : `− ${usd(bebas)}`,
+                                        luar ? '–' : `– ${usd(bebas)}`);
+  html += row('Nilai Dikenakan Pajak', 'Total − Pembebasan',                                    usd(nilaiKena), 'sub');
+  if(nilaiKena > 0){
+    html += row('Nilai Pabean (NP)',   `${usd(nilaiKena)} × Rp${kurs.toLocaleString('id-ID')}`, idr(NP));
+    html += row('Bea Masuk (BM)',      '10% × NP · flat · bulat atas/seribu',                   idr(BM));
+    html += row('Nilai Impor (NI)',    'NP + BM',                                                idr(NI), 'sub');
+    html += row('PPN Impor',           '12% × (11/12) × NI',                                    idr(PPN));
+    html += row(`PPh Pasal 22 (${npwpRate===10?'NPWP':'non-NPWP'})`, `${npwpRate}% × NI`,       idr(PPh));
+    html += row('TOTAL YANG DIBAYAR',  'BM + PPN + PPh',                                        idr(total), 'tot');
+  } else {
+    html += row('TOTAL YANG DIBAYAR',  'Bebas pungutan',                                         'Rp 0', 'tot2');
+  }
+  $('dtBody').innerHTML = html;
+
+  // NPWP compare
+  if(nilaiKena > 0){
+    $('npwpGrid').style.display = 'grid';
+    $('nYesTotal').textContent  = idr(total10);
+    $('nYesPPh').textContent    = 'PPh: ' + idr(PPh10);
+    $('nNoTotal').textContent   = idr(total20);
+    $('nNoPPh').textContent     = 'PPh: ' + idr(PPh20);
+  } else {
+    $('npwpGrid').style.display = 'none';
+  }
+
+  // Catatan
+  const srcLabel = kursSrc === 'fawazahmed0' ? 'market rate harian' :
+                   kursSrc === 'open.er-api.com' ? 'open.er-api.com' : 'fallback offline';
+  const catatan = [
+    `Kurs dipakai: <strong>Rp ${kurs.toLocaleString('id-ID')} / USD</strong> (${srcLabel}) — kurs DJBC bisa berbeda, cek di <a href="https://www.beacukai.go.id/kurs" target="_blank" style="color:var(--accent);font-weight:600">beacukai.go.id/kurs</a>`,
+    `Bea Masuk: <strong>10% flat</strong> dari Nilai Pabean`,
+    `PPN Impor: <strong>12% × (11/12) × NI</strong>`,
+    `PPh Pasal 22: <strong>10%</strong> (NPWP) atau <strong>20%</strong> (non-NPWP) × NI`,
+    luar ? `⚠️ Registrasi luar bandara: <strong>tidak ada pembebasan</strong>` : `Registrasi di bandara: dapat pembebasan <strong>${usd(bebasLimit)}</strong>`,
+    `Maks. <strong>2 unit HKT</strong> per penumpang per kedatangan per tahun`,
+    `Registrasi IMEI di Bea Cukai <strong>gratis</strong>`,
+    `Batas registrasi: <strong>60 hari</strong> sejak tiba di Indonesia`,
+    `Ini <strong>estimasi perorangan</strong>, bukan keputusan resmi Bea Cukai`,
+    `<strong>Keputusan resmi dilakukan oleh Pejabat Bea Cukai yang berwenang</strong>`,
+  ];
+  $('notesList').innerHTML = catatan.map(c => `<li>${c}</li>`).join('');
+
+  $('result').classList.add('show');
+  setTimeout(() => $('result').scrollIntoView({ behavior:'smooth', block:'start' }), 50);
+}
+
+/* ══════════════════════════════════════════
+   RESET
+══════════════════════════════════════════ */
+function doReset(){
+  $('harga').value  = '';
+  $('unit').value   = '1';
+  $('kurs').value   = kursLive || FALLBACK_KURS;
+  $('jenis').value  = '500';
+  $('npwp').value   = '10';
+  $('lokasi').value = 'bandara';
+  $('warnLuar').classList.remove('show');
+  $('result').classList.remove('show');
+  window.scrollTo({ top:0, behavior:'smooth' });
+}
+</script>
+</body>
+</html>
