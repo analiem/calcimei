@@ -1,9 +1,9 @@
 <!DOCTYPE html>
-<html lang="id">
+<html lang="id" data-theme="day">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Kalkulator IMEI</title>
+<title>Kalkulator Bayar IMEI</title>
 
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 
@@ -15,6 +15,19 @@
   --sub:#6e6e73;
   --accent:#0071e3;
   --border:#e5e5e7;
+  --green:#0a7a3d;
+  --result-bg:#fafafa;
+}
+
+[data-theme="dark"]{
+  --bg:#1c1c1e;
+  --card:#2c2c2e;
+  --text:#f5f5f7;
+  --sub:#8e8e93;
+  --accent:#3a86ff;
+  --border:#3a3a3c;
+  --green:#30d158;
+  --result-bg:#232325;
 }
 
 *{box-sizing:border-box}
@@ -24,12 +37,78 @@ body{
   font-family:'Inter',sans-serif;
   background:var(--bg);
   color:var(--text);
+  transition:background .25s, color .25s;
+}
+
+/* ── TOPBAR ── */
+.topbar{
+  position:sticky;
+  top:0;
+  z-index:50;
+  background:var(--card);
+  border-bottom:1px solid var(--border);
+  padding:12px 20px;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  max-width:100%;
+  transition:background .25s, border-color .25s;
+}
+
+.topbar-title{
+  font-size:14px;
+  font-weight:700;
+  color:var(--text);
+}
+
+/* ── THEME TOGGLE ── */
+.toggle-wrap{
+  display:flex;
+  align-items:center;
+  gap:7px;
+  cursor:pointer;
+  user-select:none;
+}
+
+.toggle-label{
+  font-size:12px;
+  font-weight:500;
+  color:var(--sub);
+}
+
+.toggle-track{
+  width:38px;
+  height:22px;
+  background:var(--border);
+  border-radius:99px;
+  position:relative;
+  transition:background .2s;
+}
+
+[data-theme="dark"] .toggle-track{
+  background:var(--accent);
+}
+
+.toggle-knob{
+  position:absolute;
+  top:3px; left:3px;
+  width:16px; height:16px;
+  background:#fff;
+  border-radius:50%;
+  font-size:10px;
+  display:flex; align-items:center; justify-content:center;
+  transition:transform .2s;
+  box-shadow:0 1px 3px rgba(0,0,0,.2);
+}
+
+[data-theme="dark"] .toggle-knob{
+  transform:translateX(16px);
 }
 
 .container{
-  max-width:520px;
+  max-width:540px;
   margin:auto;
-  padding:40px 20px;
+  padding:40px 20px 60px;
 }
 
 h1{
@@ -45,6 +124,7 @@ h1{
   margin-bottom:30px;
 }
 
+/* ── FORM CARD ── */
 .card{
   background:var(--card);
   border-radius:20px;
@@ -57,9 +137,12 @@ h1{
 }
 
 label{
+  display:block;
   font-size:12px;
   font-weight:600;
   color:var(--sub);
+  text-transform:uppercase;
+  letter-spacing:.4px;
 }
 
 input,select{
@@ -70,6 +153,10 @@ input,select{
   border:1px solid var(--border);
   font-size:15px;
   font-weight:500;
+  font-family:'Inter',sans-serif;
+  background:var(--bg);
+  color:var(--text);
+  transition:border-color .15s;
 }
 
 input:focus,select:focus{
@@ -77,7 +164,91 @@ input:focus,select:focus{
   border-color:var(--accent);
 }
 
-button{
+/* ── KURS HINT ── */
+.kurs-hint{
+  margin-top:7px;
+  font-size:12px;
+  color:var(--sub);
+  line-height:1.6;
+}
+
+.kurs-hint a{
+  color:var(--accent);
+  font-weight:600;
+  text-decoration:none;
+}
+
+.kurs-hint a:hover{ text-decoration:underline; }
+
+.kurs-row{
+  display:flex;
+  align-items:center;
+  gap:8px;
+  flex-wrap:wrap;
+  margin-top:5px;
+}
+
+.kurs-status{
+  font-size:11px;
+  display:flex;
+  align-items:center;
+  gap:4px;
+  color:var(--sub);
+}
+
+.kurs-status.ok  { color:var(--green); }
+.kurs-status.err { color:#c0392b; }
+
+@keyframes spin{ to{ transform:rotate(360deg) } }
+.spin{
+  display:inline-block;
+  width:9px; height:9px;
+  border:2px solid currentColor;
+  border-top-color:transparent;
+  border-radius:50%;
+  animation:spin .7s linear infinite;
+}
+
+.kurs-badge{
+  display:inline-flex;
+  align-items:center;
+  gap:6px;
+  background:var(--accent);
+  color:#fff;
+  border:none;
+  border-radius:8px;
+  padding:5px 11px;
+  font-size:12px;
+  font-family:'Inter',sans-serif;
+  font-weight:600;
+  cursor:pointer;
+  transition:opacity .15s, transform .1s;
+  white-space:nowrap;
+}
+
+.kurs-badge:hover{ opacity:.85; }
+.kurs-badge:active{ transform:scale(.97); }
+
+.kb-tag{
+  font-size:10px;
+  font-weight:500;
+  opacity:.75;
+  background:rgba(255,255,255,.2);
+  padding:1px 5px;
+  border-radius:4px;
+}
+
+.kb-val{ color:#ffd060; font-weight:700; }
+.kb-cta{ font-size:10px; opacity:.75; }
+
+@keyframes flashFill{
+  0%,60%{ background:#fff8d6; border-color:#f0b429; }
+  100%  { background:var(--bg); border-color:var(--border); }
+}
+input.flash{ animation:flashFill .65s ease forwards; }
+
+/* ── BUTTON ── */
+button.hitung-btn{
   width:100%;
   margin-top:18px;
   padding:14px;
@@ -87,14 +258,18 @@ button{
   color:#fff;
   font-weight:600;
   font-size:15px;
+  font-family:'Inter',sans-serif;
   cursor:pointer;
+  transition:opacity .15s;
 }
+button.hitung-btn:hover{ opacity:.88; }
 
+/* ── RESULT ── */
 .result{
   margin-top:24px;
   padding:20px;
   border-radius:16px;
-  background:#fafafa;
+  background:var(--result-bg);
   border:1px solid var(--border);
 }
 
@@ -111,10 +286,7 @@ button{
   margin-top:10px;
 }
 
-.free{
-  color:#0a7a3d;
-  font-weight:600;
-}
+.free{ color:var(--green); font-weight:600; }
 
 .note{
   margin-top:16px;
@@ -122,107 +294,318 @@ button{
   color:var(--sub);
   line-height:1.6;
 }
+
+/* ── INFO CARDS ── */
+.info-section{
+  margin-top:32px;
+}
+
+.info-title{
+  font-size:11px;
+  font-weight:700;
+  text-transform:uppercase;
+  letter-spacing:.6px;
+  color:var(--sub);
+  margin-bottom:12px;
+}
+
+.info-grid{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:12px;
+}
+
+.info-card{
+  background:var(--card);
+  border:1px solid var(--border);
+  border-radius:16px;
+  padding:18px;
+}
+
+.info-card .ic-icon{
+  font-size:22px;
+  margin-bottom:10px;
+}
+
+.info-card h4{
+  font-size:13px;
+  font-weight:700;
+  margin:0 0 6px;
+  color:var(--text);
+}
+
+.info-card p{
+  font-size:12.5px;
+  color:var(--sub);
+  line-height:1.65;
+  margin:0;
+}
+
+.info-card p strong{ color:var(--text); }
+
+/* ── FOOTER ── */
+.footer{
+  margin-top:36px;
+  text-align:center;
+  font-size:12px;
+  color:var(--sub);
+  line-height:1.7;
+}
+
+@media(max-width:480px){
+  .info-grid{ grid-template-columns:1fr; }
+}
 </style>
 </head>
 
 <body>
+<div class="topbar">
+  <span class="topbar-title">📱 Kalkulator Bayar IMEI (Unofficial)</span>
+  <div class="toggle-wrap" onclick="toggleTheme()" title="Ganti tema">
+    <span class="toggle-label" id="themeLabel">Day</span>
+    <div class="toggle-track">
+      <div class="toggle-knob" id="themeKnob">☀️</div>
+    </div>
+  </div>
+</div>
 
 <div class="container">
 
-<h1>Kalkulator Bayar IMEI</h1>
-<div class="sub">Estimasi BM + PPN untuk Personal Use</div>
+  <div class="card">
 
-<div class="card">
+    <div class="group">
+      <label>Jenis Penumpang</label>
+      <select id="jenis">
+        <option value="500">Penumpang (dibebaskan USD 500)</option>
+        <option value="50">Awak Sarana Pengangkut (dibebaskan USD 50)</option>
+      </select>
+    </div>
 
-<div class="group">
-<label>Jenis Penumpang</label>
-<select id="jenis">
-<option value="500">Penumpang (USD 500)</option>
-<option value="50">Awak (USD 50)</option>
-</select>
-</div>
+    <div class="group">
+      <label>Harga Barang (USD)</label>
+      <input type="number" id="harga" placeholder="0.00" min="0" step="0.01">
+    </div>
 
-<div class="group">
-<label>Harga Barang (USD)</label>
-<input type="number" id="harga">
-</div>
+    <div class="group">
+      <label>Jumlah Unit</label>
+      <input type="number" id="unit" value="1" min="1" max="2">
+    </div>
 
-<div class="group">
-<label>Jumlah Unit</label>
-<input type="number" id="unit" value="1" max="2">
-</div>
+    <!-- KURS dengan fetch realtime -->
+    <div class="group">
+      <label>Kurs DJBC (IDR)*</label>
+      <input type="number" id="kurs" value="17000" min="1">
 
-<div class="group">
-<label>Kurs (Rp)</label>
-<input type="number" id="kurs" value="17000">
-</div>
+      <div class="kurs-hint">
+        Kalo males liat kurs resmi, bisa diklik itu nominal kurs realtime lain tapi beda sama yang resmi →
+        <a href="https://www.beacukai.go.id/kurs" target="_blank" rel="noopener">Kurs Resmi Disini</a>
+      </div>
 
-<div class="group">
-<label>Lokasi Registrasi</label>
-<select id="lokasi">
-<option value="bandara">Bandara</option>
-<option value="luar">Luar Bandara</option>
-</select>
-</div>
+      <div class="kurs-row">
+        <span class="kurs-status" id="kursStatus">
+          <span class="spin"></span> mengambil kurs...
+        </span>
+        <div id="kursBadgeSlot"></div>
+      </div>
+    </div>
 
-<button onclick="hitung()">Hitung</button>
+    <div class="group">
+      <label>Lokasi Registrasi IMEI</label>
+      <select id="lokasi">
+        <option value="bandara">Di Bandara (dapat pembebasan)</option>
+        <option value="luar">Di Luar Bandara (tidak dapat pembebasan)</option>
+      </select>
+    </div>
 
-<div class="result" id="result" style="display:none"></div>
+    <button class="hitung-btn" onclick="hitung()">Hitung</button>
 
-</div>
+    <div class="result" id="result" style="display:none"></div>
+
+  </div>
+
+  <!-- INFO CARDS -->
+  <div class="info-section">
+    <div class="info-title">Info Umum HKT</div>
+    <div class="info-grid">
+
+      <div class="info-card">
+        <div class="ic-icon">💰</div>
+        <h4>Batas Pembebasan</h4>
+        <p>Penumpang dibebaskan <strong>USD 500</strong>. Awak pengangkut dibebaskan <strong>USD 50</strong>. Kelebihan kena BM &amp; pajak.</p>
+      </div>
+
+      <div class="info-card">
+        <div class="ic-icon">📦</div>
+        <h4>Batas Unit</h4>
+        <p>Maksimal <strong>2 unit HKT</strong> per penumpang per kedatangan per tahun.</p>
+      </div>
+
+      <div class="info-card">
+        <div class="ic-icon">🛂</div>
+        <h4>Cara Registrasi</h4>
+        <p>Counter Bea Cukai di bandara, atau online via <strong>ecd.beacukai.go.id</strong> mulai H-2.<br>
+        <strong>Pendaftaran IMEI di luar Bandara</strong> tidak mendapat pembebasan.</p>
+      </div>
+
+      <div class="info-card">
+        <div class="ic-icon">⏱️</div>
+        <h4>Batas Waktu Lapor Petugas</h4>
+        <p>Paling lambat <strong>5 hari</strong> setelah daftar dapat barcode agar dapat pembebasan.<br>
+        <strong>Pendaftaran IMEI di luar Bandara</strong> paling lambat <strong>60 hari</strong> setelah tiba.</p>
+      </div>
+
+    </div>
+  </div>
+
+  <div class="footer">
+    Kalkulator buatan orang pribadi yagesya · Bukan produk resmi pemerintah<br>
+    Dibuat tahun 2026 oleh Samuel Lana
+  </div>
+
 </div>
 
 <script>
-function idr(n){
-  return "Rp " + Math.round(n).toLocaleString('id-ID');
+/* ── THEME ── */
+function toggleTheme(){
+  const html  = document.documentElement;
+  const isDark = html.getAttribute('data-theme') === 'dark';
+  const next  = isDark ? 'day' : 'dark';
+  html.setAttribute('data-theme', next);
+  document.getElementById('themeKnob').textContent  = isDark ? '☀️' : '🌙';
+  document.getElementById('themeLabel').textContent  = isDark ? 'Day' : 'Dark';
+  localStorage.setItem('imei-theme', next);
 }
-function usd(n){
-  return "USD " + n.toFixed(2);
+(function(){
+  const s = localStorage.getItem('imei-theme');
+  if(s === 'dark'){
+    document.documentElement.setAttribute('data-theme','dark');
+    document.getElementById('themeKnob').textContent  = '🌙';
+    document.getElementById('themeLabel').textContent  = 'Dark';
+  }
+})();
+
+/* ── HELPERS ── */
+function idr(n){ return "Rp " + Math.round(n).toLocaleString('id-ID'); }
+function usd(n){ return "USD " + (+n).toFixed(2); }
+
+/* ══════════════════════════════════
+   FETCH KURS USD REALTIME
+   1. fawazahmed0 via jsDelivr CDN (no CORS, no key)
+   2. open.er-api.com (fallback, no key)
+   3. hardcoded 17000 (offline fallback)
+══════════════════════════════════ */
+const FALLBACK = 17000;
+let kursLive   = null;
+
+function setStatus(cls, html){
+  const el = document.getElementById('kursStatus');
+  el.className = 'kurs-status ' + cls;
+  el.innerHTML = html;
 }
 
+function renderBadge(val, src){
+  document.getElementById('kursBadgeSlot').innerHTML =
+    `<button class="kurs-badge" onclick="pakaiKurs()" title="Klik untuk isi ke kotak kurs">
+      <span class="kb-tag">USD/IDR</span>
+      <span class="kb-val">Rp ${Math.round(val).toLocaleString('id-ID')}</span>
+      <span>· ${src}</span>
+      <span class="kb-cta">↙ pakai</span>
+    </button>`;
+}
+
+async function fetchKurs(){
+  /* Sumber 1 — fawazahmed0 via jsDelivr */
+  try{
+    const r = await fetch(
+      'https://cdn.jsdelivr.net/npm/@fawazahmed0/currency-api@latest/v1/currencies/usd.json',
+      { signal: AbortSignal.timeout(5000) }
+    );
+    const d = await r.json();
+    const v = d?.usd?.idr;
+    if(v && v > 5000){
+      kursLive = Math.round(v);
+      document.getElementById('kurs').value = kursLive;
+      setStatus('ok', '✓ kurs USD realtime');
+      renderBadge(kursLive, 'market rate harian');
+      return;
+    }
+  }catch(e){}
+
+  /* Sumber 2 — open.er-api.com */
+  try{
+    const r = await fetch(
+      'https://open.er-api.com/v6/latest/USD',
+      { signal: AbortSignal.timeout(5000) }
+    );
+    const d = await r.json();
+    const v = d?.rates?.IDR;
+    if(v && v > 5000){
+      kursLive = Math.round(v);
+      document.getElementById('kurs').value = kursLive;
+      setStatus('ok', '✓ kurs USD realtime');
+      renderBadge(kursLive, 'market rate harian');
+      return;
+    }
+  }catch(e){}
+
+  /* Fallback offline */
+  kursLive = FALLBACK;
+  setStatus('err', '⚠ offline');
+  renderBadge(FALLBACK, 'fallback · cek manual');
+}
+
+function pakaiKurs(){
+  if(!kursLive) return;
+  const inp = document.getElementById('kurs');
+  inp.value = kursLive;
+  inp.classList.remove('flash');
+  void inp.offsetWidth;
+  inp.classList.add('flash');
+  inp.addEventListener('animationend', () => inp.classList.remove('flash'), { once:true });
+}
+
+fetchKurs();
+
+/* ══════════════════════════════════
+   HITUNG
+══════════════════════════════════ */
 function hitung(){
   const harga = parseFloat(document.getElementById('harga').value);
-  const unit  = Math.min(parseInt(document.getElementById('unit').value)||1,2);
-  const kurs  = parseFloat(document.getElementById('kurs').value);
+  const unit  = Math.min(parseInt(document.getElementById('unit').value)||1, 2);
+  const kurs  = parseFloat(document.getElementById('kurs').value) || FALLBACK;
   const bebas = parseFloat(document.getElementById('jenis').value);
   const luar  = document.getElementById('lokasi').value === 'luar';
 
-  if(!harga){
-    alert("Isi harga dulu");
-    return;
-  }
+  if(!harga){ alert("Isi harga dulu"); return; }
 
-  const totalUSD = harga * unit;
+  const totalUSD   = harga * unit;
   const bebasFinal = luar ? 0 : bebas;
-  const kena = Math.max(0, totalUSD - bebasFinal);
+  const kena       = Math.max(0, totalUSD - bebasFinal);
 
   const NP  = kena * kurs;
   const BM  = kena > 0 ? Math.ceil(NP * 0.10 / 1000) * 1000 : 0;
   const NI  = NP + BM;
   const PPN = kena > 0 ? (12/100)*(11/12)*NI : 0;
-
   const total = BM + PPN;
 
   let html = "";
-
   html += `<div class="row"><span>Nilai Barang</span><span>${usd(totalUSD)}</span></div>`;
-  html += `<div class="row"><span>Pembebasan</span><span>- ${usd(bebasFinal)}</span></div>`;
+  html += `<div class="row"><span>Pembebasan</span><span>− ${usd(bebasFinal)}</span></div>`;
   html += `<div class="row"><span>Kena Pajak</span><span>${usd(kena)}</span></div>`;
 
   if(kena > 0){
-    html += `<hr>`;
-    html += `<div class="row"><span>Bea Masuk</span><span>${idr(BM)}</span></div>`;
-    html += `<div class="row"><span>PPN</span><span>${idr(PPN)}</span></div>`;
+    html += `<hr style="border:none;border-top:1px solid var(--border);margin:10px 0">`;
+    html += `<div class="row"><span>Bea Masuk (10%)</span><span>${idr(BM)}</span></div>`;
+    html += `<div class="row"><span>PPN (12%×11/12×Nilai Impor)</span><span>${idr(PPN)}</span></div>`;
     html += `<div class="row total"><span>Total</span><span>${idr(total)}</span></div>`;
   } else {
-    html += `<div class="row total free"><span>Total</span><span>Rp 0</span></div>`;
+    html += `<div class="row total free"><span>Total</span><span>Rp 0 — Bebas!</span></div>`;
   }
 
   html += `<div class="note">
-  Perhitungan hanya BM + PPN<br>
-  Tarif PPh 0% (PMK Nomor 34 Tahun 2025)<br>
-  Kalkulator ini bukan produk resmi Bea Cukai<br>
-  Penghitungan hanya estimasi, keputusan akhir ada di Pejabat Bea Cukai
+    Tarif PPh 0% (PMK Nomor 34 Tahun 2025)<br>
+    Kurs dipakai: <strong>Rp ${kurs.toLocaleString('id-ID')}/USD</strong><br>
+    <strong>Hasil ini hanya estimasi, hitungan resmi merupakan kewenangan Pejabat Bea Cukai</strong>
   </div>`;
 
   const res = document.getElementById('result');
