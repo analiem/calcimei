@@ -264,13 +264,26 @@ button.hitung-btn{
 }
 button.hitung-btn:hover{ opacity:.88; }
 
-/* ── RESULT ── */
+/* ── RESULT STATES ── */
 .result{
   margin-top:24px;
   padding:20px;
   border-radius:16px;
   background:var(--result-bg);
   border:1px solid var(--border);
+  transition:background .3s, border-color .3s;
+}
+
+.result.bayar{
+  background:#e90052;
+  border-color:#c0003f;
+  color:#fff;
+}
+
+.result.bebas{
+  background:#00ff85;
+  border-color:#00cc6a;
+  color:#0a3d20;
 }
 
 .row{
@@ -286,7 +299,16 @@ button.hitung-btn:hover{ opacity:.88; }
   margin-top:10px;
 }
 
-.free{ color:var(--green); font-weight:600; }
+.result.bayar .row,
+.result.bayar .total,
+.result.bayar .note{ color:#fff; }
+.result.bayar .note strong{ color:#fff; }
+
+.result.bebas .row,
+.result.bebas .total,
+.result.bebas .note{ color:#0a3d20; }
+.result.bebas .note strong{ color:#0a3d20; }
+.result.bebas .free{ color:#0a3d20; font-weight:800; }
 
 .note{
   margin-top:16px;
@@ -611,6 +633,7 @@ function hitung(){
   const res = document.getElementById('result');
   res.innerHTML = html;
   res.style.display = 'block';
+  res.className = 'result ' + (kena > 0 ? 'bayar' : 'bebas');
 }
 </script>
 
