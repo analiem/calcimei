@@ -752,7 +752,7 @@ function salinHasil() {
     `Total Bayar  : ${kena > 0 ? idr(total) : 'Rp 0 — Bebas!'}`,
     '──────────────────────',
     `Kurs USD/IDR : Rp ${kurs.toLocaleString('id-ID')}`,
-    'by Calcimei · Dino Studio',
+    'by Calcimei · dino-dino studio',
   ].filter(Boolean).join('\n');
 
   navigator.clipboard.writeText(lines).then(() => {
